@@ -107,3 +107,18 @@
 - **API:** [[config-api.md]] - Configuration API
 - **API:** [[processes-api.md]] - Processes API
 - **API:** [[bo-reference-api.md]] - BO Reference API
+
+## C# Scripts
+- [[csharp-scripts-basics.md]] - Основы C# скриптов
+- [[csharp-scripts-structure.md]] - Структура скриптов
+- [[csharp-scripts-references.md]] - Ссылки на сборки
+- [[csharp-scripts-loading.md]] - Загрузка скриптов
+- [[csharp-scripts-running.md]] - Запуск скриптов
+- [[csharp-scripts-automation.md]] - Автоматизация скриптов
+- [[csharp-scripts-prototyping.md]] - Прототипирование
+- [[csharp-scripts-best-practices.md]] - Лучшие практики
+
+## VS Code для C# Scripts
+- [[vscode-setup-for-csharp-scripts.md]] - Настройка VS Code
+- [[vscode-intellisense-scripts.md]] - IntelliSense
+- [[vscode-debug-scripts.md]] - Отладка

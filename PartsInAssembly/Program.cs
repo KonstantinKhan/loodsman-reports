@@ -6,6 +6,7 @@ namespace CSharp
     {
         private const string DefaultLinkTypeName = "Состоит из ...";
         private const string DefaultTargetTypeName = "Деталь";
+        private const int DefaultMaxDepth = 5;
 
         static async Task Main(string[] args)
         {
@@ -29,13 +30,15 @@ namespace CSharp
                     throw new InvalidOperationException("Не указан идентификатор объекта \"Сборочная единица\" (object_ids)");
 
                 var depthStr = config.GetStringParameterByName("Глубина разузловки");
-                if (!int.TryParse(depthStr, out var maxDepth) || maxDepth < 1)
+                int maxDepth;
+                if (!int.TryParse(depthStr, out maxDepth) || maxDepth < 1)
                 {
                     var foundKeys = config.Params.Count == 0
-                        ? "(params пустой — либо не пришёл userData, либо не распарсился JSON)"
+                        ? "(params пустой — параметр \"Глубина разузловки\", вероятно, не настроен в регистрации отчёта в Конфигураторе)"
                         : string.Join(", ", config.Params.Keys);
-                    throw new InvalidOperationException(
-                        $"Параметр \"Глубина разузловки\" не задан или некорректен. Найденные ключи params: {foundKeys}");
+                    Console.Error.WriteLine(
+                        $"Предупреждение: параметр \"Глубина разузловки\" не задан или некорректен, использую значение по умолчанию {DefaultMaxDepth}. Найденные ключи params: {foundKeys}");
+                    maxDepth = DefaultMaxDepth;
                 }
 
                 var linkTypeName = config.GetStringParameterByName("Тип связи");

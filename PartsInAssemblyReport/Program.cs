@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace PartsInAssemblyReport
 {
     internal class Program
@@ -7,17 +9,34 @@ namespace PartsInAssemblyReport
 
         static async Task Main(string[] args)
         {
+            // Явно фиксируем UTF-8 для вывода — иначе кириллица в JSON-результате
+            // может побиться так же, как и во входных данных
+            Console.OutputEncoding = Encoding.UTF8;
+
             try
             {
-                // Заполняем конфигурацию из потока ввода и аргументов командной строки
-                var config = AppConfiguration.GetConfiguration(args, Console.In.ReadToEnd());
+                // Читаем stdin явно как UTF-8, не полагаясь на кодовую страницу консоли
+                // (Console.In при пайпе на Windows/PowerShell может декодировать кириллицу неверно)
+                string userData;
+                using (var reader = new StreamReader(Console.OpenStandardInput(), Encoding.UTF8))
+                {
+                    userData = reader.ReadToEnd();
+                }
+
+                var config = AppConfiguration.GetConfiguration(args, userData);
 
                 if (config.ObjectIds.Count == 0)
                     throw new InvalidOperationException("Не указан идентификатор объекта \"Сборочная единица\" (object_ids)");
 
                 var depthStr = config.GetStringParameterByName("Глубина разузловки");
                 if (!int.TryParse(depthStr, out var maxDepth) || maxDepth < 1)
-                    throw new InvalidOperationException("Параметр \"Глубина разузловки\" не задан или некорректен");
+                {
+                    var foundKeys = config.Params.Count == 0
+                        ? "(params пустой — либо не пришёл userData, либо не распарсился JSON)"
+                        : string.Join(", ", config.Params.Keys);
+                    throw new InvalidOperationException(
+                        $"Параметр \"Глубина разузловки\" не задан или некорректен. Найденные ключи params: {foundKeys}");
+                }
 
                 var linkTypeName = config.GetStringParameterByName("Тип связи");
                 if (string.IsNullOrWhiteSpace(linkTypeName))

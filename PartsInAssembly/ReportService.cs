@@ -1,4 +1,4 @@
-namespace PartsInAssemblyReport
+namespace CSharp
 {
     /// <summary>
     /// Формирует список объектов заданного типа (например, "Деталь"),

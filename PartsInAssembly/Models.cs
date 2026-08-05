@@ -1,4 +1,4 @@
-namespace PartsInAssemblyReport
+namespace CSharp
 {
     /// <summary>
     /// Информация об объекте, полученная от get-prop-objects / get-linked-fast
@@ -15,7 +15,7 @@ namespace PartsInAssemblyReport
     }
 
     /// <summary>
-    /// Атрибут версии или связи, полученный от get-info-about-version-mode-3 / get-link-attributes-2
+    /// Атрибут версии, полученный от get-info-about-version-mode-3
     /// </summary>
     public class Attributes
     {

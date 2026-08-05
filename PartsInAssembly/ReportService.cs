@@ -58,7 +58,8 @@ namespace CSharp
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"Предупреждение: не удалось получить дочерние объекты для версии {currentObject.idVersion}: {ex.Message}");
+                Cp866.WriteLine(Console.OpenStandardError(),
+                    $"Предупреждение: не удалось получить дочерние объекты для версии {currentObject.idVersion}: {ex.Message}");
                 return;
             }
 
@@ -82,7 +83,8 @@ namespace CSharp
                 }
                 catch (Exception ex)
                 {
-                    Console.Error.WriteLine($"Предупреждение: не удалось получить атрибуты версии {row.IdVersion}: {ex.Message}");
+                    Cp866.WriteLine(Console.OpenStandardError(),
+                        $"Предупреждение: не удалось получить атрибуты версии {row.IdVersion}: {ex.Message}");
                 }
             }
         }

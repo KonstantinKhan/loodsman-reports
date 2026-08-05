@@ -1,4 +1,4 @@
-﻿using System.Text.Encodings.Web;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 
 namespace CSharp
@@ -20,26 +20,28 @@ namespace CSharp
         };
 
         /// <summary>
-        /// Печать коллекции объектов в виде JSON
+        /// Печать коллекции объектов в виде JSON. Пишем байты сами через Cp866 —
+        /// служба выполнения скриптов читает stdout дочернего процесса не в UTF-8,
+        /// а в OEM-кодировке консоли (CP866 на русской Windows), см. Cp866.cs.
         /// </summary>
         public static void PrintJson<T>(IEnumerable<T> items)
         {
             if (items == null)
             {
-                Console.WriteLine("Нет данных для отображения");
+                Cp866.WriteLine(Console.OpenStandardOutput(), "Нет данных для отображения");
                 return;
             }
 
             var itemsList = items.ToList();
             if (itemsList.Count == 0)
             {
-                Console.WriteLine("Нет данных для отображения");
+                Cp866.WriteLine(Console.OpenStandardOutput(), "Нет данных для отображения");
                 return;
             }
 
             var prettyJson = JsonSerializer.Serialize(items, _options);
 
-            Console.WriteLine(prettyJson);
+            Cp866.WriteLine(Console.OpenStandardOutput(), prettyJson);
         }
     }
 }

@@ -1,5 +1,3 @@
-using System.Text;
-
 namespace CSharp
 {
     internal class Program
@@ -10,10 +8,6 @@ namespace CSharp
 
         static async Task Main(string[] args)
         {
-            // Явно фиксируем UTF-8 для вывода — вывод (JSON-результат) мы формируем сами,
-            // поэтому кодировка на выходе под контролем
-            Console.OutputEncoding = Encoding.UTF8;
-
             try
             {
                 var userData = ReadUserDataFromStdin();
@@ -28,13 +22,13 @@ namespace CSharp
                 {
                     if (config.Params.Count == 0)
                     {
-                        Console.Error.WriteLine(
+                        Cp866.WriteLine(Console.OpenStandardError(),
                             $"Предупреждение: params пустой — параметр \"Глубина разузловки\", вероятно, не настроен в регистрации отчёта в Конфигураторе. Использую значение по умолчанию {DefaultMaxDepth}.");
                     }
                     else
                     {
                         var foundKeys = string.Join(", ", config.Params.Keys);
-                        Console.Error.WriteLine(
+                        Cp866.WriteLine(Console.OpenStandardError(),
                             $"Предупреждение: параметр \"Глубина разузловки\" не задан или некорректен, использую значение по умолчанию {DefaultMaxDepth}. Найденные ключи params: {foundKeys}");
                     }
                     maxDepth = DefaultMaxDepth;
@@ -57,13 +51,11 @@ namespace CSharp
             }
             catch (Exception ex)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.Error.WriteLine($"Ошибка при генерации отчета: {ex.Message}");
-                Console.ResetColor();
+                Cp866.WriteLine(Console.OpenStandardError(), $"Ошибка при генерации отчета: {ex.Message}");
 
                 if (ex.InnerException != null)
                 {
-                    Console.Error.WriteLine($"Детали: {ex.InnerException.Message}");
+                    Cp866.WriteLine(Console.OpenStandardError(), $"Детали: {ex.InnerException.Message}");
                 }
 
                 Environment.Exit(1);
@@ -90,52 +82,13 @@ namespace CSharp
 
             try
             {
-                var strictUtf8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+                var strictUtf8 = new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
                 return strictUtf8.GetString(bytes);
             }
-            catch (DecoderFallbackException)
+            catch (System.Text.DecoderFallbackException)
             {
-                return DecodeCp866(bytes);
+                return Cp866.Decode(bytes);
             }
-        }
-
-        // Ручной декодер CP866 — без пакета System.Text.Encoding.CodePages,
-        // т.к. служба выполнения скриптов восстанавливает NuGet только из локального
-        // офлайн-источника, внешние пакеты там недоступны.
-        //
-        // 0x00-0x7F — ASCII как есть.
-        // 0x80-0xAF — А-Я, а-п (byte + 0x390).
-        // 0xB0-0xDF — псевдографика (только таблицей).
-        // 0xE0-0xEF — р-я (byte + 0x360).
-        // 0xF0-0xFF — Ё/ё/Є/є/Ї/ї/Ў/ў и спецсимволы (только таблицей).
-        private static readonly char[] Cp866BoxDrawingBlock =
-        {
-            '░', '▒', '▓', '│', '┤', '╡', '╢', '╖', '╕', '╣', '║', '╗', '╝', '╜', '╛', '┐',
-            '└', '┴', '┬', '├', '─', '┼', '╞', '╟', '╚', '╔', '╩', '╦', '╠', '═', '╬', '╧',
-            '╨', '╤', '╥', '╙', '╘', '╒', '╓', '╫', '╪', '┘', '┌', '█', '▄', '▌', '▐', '▀'
-        };
-
-        private static readonly char[] Cp866SpecialBlock =
-        {
-            'Ё', 'ё', 'Є', 'є', 'Ї', 'ї', 'Ў', 'ў', '°', '∙', '·', '√', '№', '¤', '■', ' '
-        };
-
-        private static string DecodeCp866(byte[] bytes)
-        {
-            var chars = new char[bytes.Length];
-            for (int i = 0; i < bytes.Length; i++)
-            {
-                byte b = bytes[i];
-                chars[i] = b switch
-                {
-                    < 0x80 => (char)b,
-                    < 0xB0 => (char)(b + 0x390),
-                    < 0xE0 => Cp866BoxDrawingBlock[b - 0xB0],
-                    < 0xF0 => (char)(b + 0x360),
-                    _ => Cp866SpecialBlock[b - 0xF0]
-                };
-            }
-            return new string(chars);
         }
     }
 }

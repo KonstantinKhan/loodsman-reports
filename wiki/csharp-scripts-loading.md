@@ -166,13 +166,18 @@ namespace ExactProductStructureReport
 
 > `ApiVersion` по умолчанию — `"4"` (актуальная версия REST API, см. `swagger.lapis`).
 
-## Кодировка stdin (частая проблема на Windows)
+## Кодировка stdin/stdout/stderr (частая проблема на Windows)
 
-Служба выполнения скриптов на Windows **не передаёт `userData` в UTF-8** — на практике это OEM-кодировка консоли, на русской Windows это **CP866** (не Windows-1251!). Если декодировать stdin как UTF-8 напрямую, декодер либо упадёт на невалидных байтах, либо (если декодировать как CP1251/другую кодировку "на глаз") даст читаемую на вид, но неверную кириллицу — и `GetStringParameterByName` не найдёт нужный параметр, хотя в логах он как будто есть.
+Служба выполнения скриптов на Windows **не использует UTF-8** ни на входе, ни на выходе дочернего процесса — она читает и пишет через OEM-кодировку консоли, на русской Windows это **CP866** (не Windows-1251!). Это касается **всех** потоков:
 
-> **Как проверяли**: при отладке реального стенда предупреждение с "найденными ключами params" выводило кракозябры даже после попытки декодировать как CP1251. Чтобы не гадать по консольному выводу (он сам по себе может смешивать несколько слоёв неправильного перекодирования при отображении), в лог добавили `Convert.ToBase64String(Encoding.UTF8.GetBytes(...))` — base64 нельзя испортить консольным рендерингом. Декодировали base64 → получили сырые UTF-8-байты строки → перебором кодировок нашли, что `bytes.Decode("cp866")` даёт ожидаемый `"Глубина разузловки"`. Если снова столкнётесь с похожей проблемой — используйте тот же приём (base64 в диагностику), не пытайтесь распознать кодировку по консольному выводу глазами.
+- `userData` приходит в stdin в CP866;
+- всё, что скрипт печатает в stdout (сам JSON-результат отчёта) и в stderr (диагностика/ошибки), служба читает обратно тоже как CP866 — если писать обычным `Console.WriteLine`/`Console.Error.WriteLine` (даже с `Console.OutputEncoding = Encoding.UTF8`), кириллица в результате и в логах будет битой на стороне, где это прочитают.
 
-Рабочий вариант — читать stdin как сырые байты и пробовать декодировать сначала строго как UTF-8, при ошибке — как CP866.
+Если декодировать/кодировать через UTF-8 напрямую — decoder либо упадёт на невалидных байтах, либо (при попытке декодировать "на глаз" другой кодировкой типа CP1251) даст читаемую на вид, но неверную кириллицу.
+
+> **Как проверяли**: при отладке реального стенда предупреждение с "найденными ключами params" выводило кракозябры даже после попытки декодировать как CP1251. Чтобы не гадать по консольному выводу (он сам по себе может смешивать несколько слоёв неправильного перекодирования при отображении), в лог временно добавляли `Convert.ToBase64String(Encoding.UTF8.GetBytes(...))` — base64 нельзя испортить консольным рендерингом. Декодировали base64 → получили сырые UTF-8-байты строки → перебором кодировок нашли, что `bytes.Decode("cp866")` даёт ожидаемый `"Глубина разузловки"`. Тот же приём (закодировать подозрительную строку в исходную кодировку и раскодировать как UTF-8/наоборот, перебором) применили и для диагностики самого JSON-вывода. Если снова столкнётесь с похожей проблемой — используйте тот же приём (base64 в диагностику + перебор кодировок), не пытайтесь распознать кодировку по консольному выводу глазами.
+
+Рабочий вариант — **и на чтение, и на запись** работать с сырыми байтами через общий кодек CP866, а не через `Console.In`/`Console.Out`/`Console.Error` напрямую.
 
 > **Важно**: `Encoding.GetEncoding(866)` в .NET (Core/5+) штатно требует пакет
 > `System.Text.Encoding.CodePages` и регистрацию `CodePagesEncodingProvider`.
@@ -183,16 +188,99 @@ namespace ExactProductStructureReport
 > `NU1301: Локальный источник ... не существует`, и сборка на сервере падает — даже
 > если она проходила локально на машине разработчика с доступом в NuGet.org.
 >
-> Вместо пакета — декодировать CP866 вручную явными таблицами (self-contained,
-> без внешних зависимостей): `0x00-0x7F` — ASCII как есть, `0x80-0xAF` — А-Я/а-п
-> одним смещением (`byte + 0x390`), `0xE0-0xEF` — р-я смещением (`byte + 0x360`),
-> `0xB0-0xDF` — псевдографика и `0xF0-0xFF` — Ё/ё/Є/є/Ї/ї/Ў/ў и спецсимволы —
-> только явными таблицами из стандарта CP866.
+> Вместо пакета — кодировать/декодировать CP866 вручную явными таблицами
+> (self-contained, без внешних зависимостей): `0x00-0x7F` — ASCII как есть,
+> `0x80-0xAF` — А-Я/а-п одним смещением (`byte + 0x390`), `0xE0-0xEF` — р-я
+> смещением (`byte + 0x360`), `0xB0-0xDF` — псевдографика и `0xF0-0xFF` —
+> Ё/ё/Є/є/Ї/ї/Ў/ў и спецсимволы — только явными таблицами из стандарта CP866.
+> На запись — обратные таблицы (unicode → byte), непредставимые в CP866 символы
+> заменяются на `?`.
+
+Удобно вынести кодек в отдельный файл `Cp866.cs` и использовать его *везде*, где текст с кириллицей уходит в консоль — не только для чтения `userData`, но и для `ReportPrinter` (вывод JSON) и любых диагностических `Console.Error.WriteLine` по коду:
 
 ```csharp
-using System.Text;
+namespace CSharp
+{
+    internal static class Cp866
+    {
+        private static readonly char[] BoxDrawingBlock =
+        {
+            '░', '▒', '▓', '│', '┤', '╡', '╢', '╖', '╕', '╣', '║', '╗', '╝', '╜', '╛', '┐',
+            '└', '┴', '┬', '├', '─', '┼', '╞', '╟', '╚', '╔', '╩', '╦', '╠', '═', '╬', '╧',
+            '╨', '╤', '╥', '╙', '╘', '╒', '╓', '╫', '╪', '┘', '┌', '█', '▄', '▌', '▐', '▀'
+        };
 
-static string ReadUserDataFromStdin()
+        private static readonly char[] SpecialBlock =
+        {
+            'Ё', 'ё', 'Є', 'є', 'Ї', 'ї', 'Ў', 'ў', '°', '∙', '·', '√', '№', '¤', '■', ' '
+        };
+
+        private static readonly Dictionary<char, byte> EncodeMap = BuildEncodeMap();
+
+        private static Dictionary<char, byte> BuildEncodeMap()
+        {
+            var map = new Dictionary<char, byte>();
+
+            for (int b = 0x80; b < 0xB0; b++)
+                map[(char)(b + 0x390)] = (byte)b;
+
+            for (int b = 0xE0; b < 0xF0; b++)
+                map[(char)(b + 0x360)] = (byte)b;
+
+            for (int i = 0; i < BoxDrawingBlock.Length; i++)
+                map[BoxDrawingBlock[i]] = (byte)(0xB0 + i);
+
+            for (int i = 0; i < SpecialBlock.Length; i++)
+                map[SpecialBlock[i]] = (byte)(0xF0 + i);
+
+            return map;
+        }
+
+        public static string Decode(byte[] bytes)
+        {
+            var chars = new char[bytes.Length];
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                byte b = bytes[i];
+                chars[i] = b switch
+                {
+                    < 0x80 => (char)b,
+                    < 0xB0 => (char)(b + 0x390),
+                    < 0xE0 => BoxDrawingBlock[b - 0xB0],
+                    < 0xF0 => (char)(b + 0x360),
+                    _ => SpecialBlock[b - 0xF0]
+                };
+            }
+            return new string(chars);
+        }
+
+        public static byte[] Encode(string text)
+        {
+            var bytes = new byte[text.Length];
+            for (int i = 0; i < text.Length; i++)
+            {
+                char c = text[i];
+                bytes[i] = c < 0x80
+                    ? (byte)c
+                    : (EncodeMap.TryGetValue(c, out var b) ? b : (byte)'?');
+            }
+            return bytes;
+        }
+
+        public static void WriteLine(Stream stream, string text)
+        {
+            var bytes = Encode(text + "\n");
+            stream.Write(bytes, 0, bytes.Length);
+            stream.Flush();
+        }
+    }
+}
+```
+
+Использование при чтении `userData`:
+
+```csharp
+private static string ReadUserDataFromStdin()
 {
     byte[] bytes;
     using (var stdin = Console.OpenStandardInput())
@@ -207,49 +295,27 @@ static string ReadUserDataFromStdin()
 
     try
     {
-        var strictUtf8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+        var strictUtf8 = new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
         return strictUtf8.GetString(bytes);
     }
-    catch (DecoderFallbackException)
+    catch (System.Text.DecoderFallbackException)
     {
-        return DecodeCp866(bytes);
+        return Cp866.Decode(bytes);
     }
-}
-
-// 0xB0-0xDF — псевдографика CP866
-private static readonly char[] Cp866BoxDrawingBlock =
-{
-    '░', '▒', '▓', '│', '┤', '╡', '╢', '╖', '╕', '╣', '║', '╗', '╝', '╜', '╛', '┐',
-    '└', '┴', '┬', '├', '─', '┼', '╞', '╟', '╚', '╔', '╩', '╦', '╠', '═', '╬', '╧',
-    '╨', '╤', '╥', '╙', '╘', '╒', '╓', '╫', '╪', '┘', '┌', '█', '▄', '▌', '▐', '▀'
-};
-
-// 0xF0-0xFF — Ё/ё/Є/є/Ї/ї/Ў/ў и спецсимволы CP866
-private static readonly char[] Cp866SpecialBlock =
-{
-    'Ё', 'ё', 'Є', 'є', 'Ї', 'ї', 'Ў', 'ў', '°', '∙', '·', '√', '№', '¤', '■', ' '
-};
-
-static string DecodeCp866(byte[] bytes)
-{
-    var chars = new char[bytes.Length];
-    for (int i = 0; i < bytes.Length; i++)
-    {
-        byte b = bytes[i];
-        chars[i] = b switch
-        {
-            < 0x80 => (char)b,
-            < 0xB0 => (char)(b + 0x390),
-            < 0xE0 => Cp866BoxDrawingBlock[b - 0xB0],
-            < 0xF0 => (char)(b + 0x360),
-            _ => Cp866SpecialBlock[b - 0xF0]
-        };
-    }
-    return new string(chars);
 }
 ```
 
-Вывод (JSON-результат в stdout) формируется приложением самостоятельно — там достаточно `Console.OutputEncoding = Encoding.UTF8;` в начале `Main`, отдельного автоопределения не требуется.
+Использование при выводе результата (вместо `Console.WriteLine`):
+
+```csharp
+Cp866.WriteLine(Console.OpenStandardOutput(), prettyJson);
+```
+
+И при выводе диагностики (вместо `Console.Error.WriteLine`):
+
+```csharp
+Cp866.WriteLine(Console.OpenStandardError(), $"Предупреждение: ...");
+```
 
 ## Связанные узлы
 

@@ -10,20 +10,16 @@ namespace CSharp
 
         static async Task Main(string[] args)
         {
-            // Явно фиксируем UTF-8 для вывода — иначе кириллица в JSON-результате
-            // может побиться так же, как и во входных данных
+            // Регистрируем провайдер codepages — без него Encoding.GetEncoding(1251) кидает исключение
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+            // Явно фиксируем UTF-8 для вывода — вывод (JSON-результат) мы формируем сами,
+            // поэтому кодировка на выходе под контролем
             Console.OutputEncoding = Encoding.UTF8;
 
             try
             {
-                // Читаем stdin явно как UTF-8, не полагаясь на кодовую страницу консоли
-                // (Console.In при пайпе на Windows/PowerShell может декодировать кириллицу неверно)
-                string userData;
-                using (var reader = new StreamReader(Console.OpenStandardInput(), Encoding.UTF8))
-                {
-                    userData = reader.ReadToEnd();
-                }
-
+                var userData = ReadUserDataFromStdin();
                 var config = AppConfiguration.GetConfiguration(args, userData);
 
                 if (config.ObjectIds.Count == 0)
@@ -68,6 +64,34 @@ namespace CSharp
                 }
 
                 Environment.Exit(1);
+            }
+        }
+
+        /// <summary>
+        /// Читает userData из stdin. Служба выполнения скриптов на Windows не всегда
+        /// передаёт данные в UTF-8 — пробуем UTF-8 (строго), при ошибке — Windows-1251.
+        /// </summary>
+        private static string ReadUserDataFromStdin()
+        {
+            byte[] bytes;
+            using (var stdin = Console.OpenStandardInput())
+            using (var buffer = new MemoryStream())
+            {
+                stdin.CopyTo(buffer);
+                bytes = buffer.ToArray();
+            }
+
+            if (bytes.Length == 0)
+                return string.Empty;
+
+            try
+            {
+                var strictUtf8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+                return strictUtf8.GetString(bytes);
+            }
+            catch (DecoderFallbackException)
+            {
+                return Encoding.GetEncoding(1251).GetString(bytes);
             }
         }
     }

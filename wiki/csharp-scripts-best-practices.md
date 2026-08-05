@@ -110,6 +110,26 @@ namespace ExactProductStructureReport
    ```
 4. В выводе должен появиться JSON-список объектов с нужными свойствами — значит всё работает правильно, можно переходить к разработке шаблона и регистрации отчёта.
 
+### Локальный запуск из WSL (альтернатива PowerShell)
+
+PowerShell на Windows по умолчанию использует не-UTF8 кодовую страницу консоли, из-за чего кириллица в `userdata.json` может побиться ещё на этапе передачи в stdin приложения (отдельно от проблемы кодировки на стороне службы выполнения скриптов, см. [[csharp-scripts-loading.md]]). Терминал WSL по умолчанию UTF-8, поэтому для локальной отладки может быть удобнее собирать и запускать проект прямо там:
+
+```bash
+# Установка .NET SDK 8 в WSL (Ubuntu/Debian), один раз
+wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
+chmod +x dotnet-install.sh
+./dotnet-install.sh --channel 8.0
+export PATH="$HOME/.dotnet:$PATH"   # добавить в ~/.bashrc, чтобы не повторять каждый раз
+
+# Если проект лежит на Windows-диске — он доступен из WSL по /mnt/<буква диска>/...
+cd /mnt/c/Users/<user>/путь/до/проекта
+
+dotnet build
+cat userdata.json | dotnet run -- -a http://<host>:<port> --session <sessionId>
+```
+
+WSL2 обычно имеет сетевой доступ к тем же хостам, что и Windows, так что обращение к реальному серверу приложений ЛОЦМАН:PLM работает без дополнительной настройки.
+
 ## Связанные узлы
 
 - [[csharp-scripts-structure.md]] — структура

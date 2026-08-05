@@ -166,6 +166,50 @@ namespace ExactProductStructureReport
 
 > `ApiVersion` по умолчанию — `"4"` (актуальная версия REST API, см. `swagger.lapis`).
 
+## Кодировка stdin (частая проблема на Windows)
+
+Служба выполнения скриптов на Windows **не всегда** передаёт `userData` в UTF-8 — на практике встречается Windows-1251. Если декодировать stdin как UTF-8 напрямую, кириллица в ключах `params` побьётся (символы заменятся на replacement character), и `GetStringParameterByName` не найдёт нужный параметр, хотя в логах он как будто есть.
+
+Рабочий вариант — читать stdin как сырые байты и пробовать декодировать сначала строго как UTF-8, при ошибке — как Windows-1251. Для `Encoding.GetEncoding(1251)` в .NET (Core/5+) нужен пакет `System.Text.Encoding.CodePages` и регистрация провайдера (тот же приём используется и в шаблоне "C# ServerAPI скрипт" для тех же целей):
+
+```xml
+<ItemGroup>
+  <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
+</ItemGroup>
+```
+
+```csharp
+using System.Text;
+
+Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+static string ReadUserDataFromStdin()
+{
+    byte[] bytes;
+    using (var stdin = Console.OpenStandardInput())
+    using (var buffer = new MemoryStream())
+    {
+        stdin.CopyTo(buffer);
+        bytes = buffer.ToArray();
+    }
+
+    if (bytes.Length == 0)
+        return string.Empty;
+
+    try
+    {
+        var strictUtf8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+        return strictUtf8.GetString(bytes);
+    }
+    catch (DecoderFallbackException)
+    {
+        return Encoding.GetEncoding(1251).GetString(bytes);
+    }
+}
+```
+
+Вывод (JSON-результат в stdout) формируется приложением самостоятельно — там достаточно `Console.OutputEncoding = Encoding.UTF8;` в начале `Main`, отдельного автоопределения не требуется.
+
 ## Связанные узлы
 
 - [[csharp-scripts-references.md]] — зависимости

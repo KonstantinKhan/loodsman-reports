@@ -116,7 +116,7 @@
 - [[csharp-scripts-basics.md]] - Основы: что такое отчёт "C# скрипт", требования, общий пайплайн
 - [[csharp-scripts-structure.md]] - Структура и служебные классы шаблона
 - [[csharp-scripts-references.md]] - Создание проекта и зависимости
-- [[csharp-scripts-loading.md]] - Получение адреса СП, сессии и пользовательских данных
+- [[csharp-scripts-loading.md]] - Получение адреса СП, сессии и пользовательских данных; кодировка stdin/stdout/stderr (CP866)
 - [[csharp-scripts-prototyping.md]] - Подготовка моделей данных через Swagger
 - [[csharp-scripts-running.md]] - Подключение к серверу приложений (HttpClient)
 - [[csharp-scripts-automation.md]] - Получение данных и маппинг в модели

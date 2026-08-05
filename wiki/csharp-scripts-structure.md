@@ -71,12 +71,14 @@ _httpClient.DefaultRequestHeaders.Add("web-loodsman-session", _config.SessionId)
 
 Точка входа. Метод `Main` (асинхронный):
 
-1. получает `AppConfiguration` через `GetConfiguration(args, Console.In.ReadToEnd())`;
+1. получает `AppConfiguration` через `GetConfiguration(args, userData)`;
 2. создаёт `LoodsmanApiClient`;
 3. создаёт сервис сбора данных (`ReportService`) с `apiClient` и `config`;
 4. запускает генерацию отчёта;
 5. печатает результат через `ReportPrinter.PrintJson`;
-6. оборачивает всё в `try-catch`, ошибки — в `Console.Error`.
+6. оборачивает всё в `try-catch`, ошибки — в stderr.
+
+> **Критично**: `userData` нельзя читать через `Console.In.ReadToEnd()`, а ошибки/предупреждения нельзя писать через `Console.WriteLine`/`Console.Error.WriteLine` напрямую. Служба выполнения скриптов общается с процессом не в UTF-8, а в OEM-кодировке консоли (CP866 на русской Windows) — обычный `Console.In`/`Console.Out` с этим не совместим и кириллица бьётся в обе стороны (и на входе, и на выходе). Читать/писать нужно через общий кодек `Cp866` — см. подробности и полный код в [[csharp-scripts-loading.md]].
 
 ## ReportService.cs
 
@@ -84,7 +86,11 @@ _httpClient.DefaultRequestHeaders.Add("web-loodsman-session", _config.SessionId)
 
 ## ReportPrinter.cs
 
-Статическая утилита для форматированного вывода результата в консоль в виде JSON (с отступами, camelCase, корректной обработкой кириллицы). См. [[csharp-scripts-best-practices.md]].
+Статическая утилита для форматированного вывода результата в консоль в виде JSON (с отступами, camelCase, корректной обработкой кириллицы). Сериализует через `JsonSerializer`, но сам вывод должен идти через кодек `Cp866` (см. [[csharp-scripts-loading.md]]), а не `Console.WriteLine` — иначе кириллица в `type`/`name` и т.п. полях результата придёт битой на сторону, которая читает stdout скрипта. См. [[csharp-scripts-best-practices.md]].
+
+## Cp866.cs
+
+Общий кодек для кодировки CP866 (декодирование входящего `userData` и кодирование всего, что скрипт печатает в stdout/stderr) — см. подробное объяснение проблемы и полный код в [[csharp-scripts-loading.md]]. Использовать во всех местах, где в консоль попадает текст с кириллицей: `Program.cs`, `ReportPrinter.cs`, любые диагностические сообщения в `ReportService.cs`/`LoodsmanApiClient.cs`.
 
 ## Связанные узлы
 

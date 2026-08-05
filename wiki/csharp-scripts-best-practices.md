@@ -1,10 +1,18 @@
 # Основная программа, вывод результата и локальное тестирование
 
+> **Перед копированием этого раздела** прочитайте [[csharp-scripts-loading.md]] →
+> "Кодировка stdin/stdout/stderr". Служба выполнения скриптов на Windows общается
+> с процессом не в UTF-8, а в CP866 — обычные `Console.In.ReadToEnd()` и
+> `Console.WriteLine`/`Console.Error.WriteLine` **ломают кириллицу и на входе, и
+> на выходе**. Ниже — уже рабочий вариант через кодек `Cp866`.
+
 ## Program.cs — сбор и возврат данных
 
 Точка входа собирает все компоненты, запускает генерацию отчёта и выводит результат:
 
 ```csharp
+using System.Text;
+
 namespace ExactProductStructureReport
 {
     internal class Program
@@ -13,11 +21,13 @@ namespace ExactProductStructureReport
         {
             try
             {
-                // Заполняем конфигурацию из потока ввода и аргументов
-                var config = AppConfiguration.GetConfiguration(args, Console.In.ReadToEnd());
+                // Читаем userData через кодек Cp866 (см. csharp-scripts-loading.md),
+                // а не через Console.In.ReadToEnd()
+                var userData = ReadUserDataFromStdin();
+                var config = AppConfiguration.GetConfiguration(args, userData);
 
                 // Инициализируем API-клиент
-                var apiClient = new LoodsmanApiClient(config);
+                using var apiClient = new LoodsmanApiClient(config);
 
                 // Инициализируем сервис сбора данных
                 var reportService = new ReportService(apiClient, config);
@@ -31,12 +41,36 @@ namespace ExactProductStructureReport
             }
             catch (Exception ex)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.Error.WriteLine($"Ошибка при генерации отчета: {ex.Message}");
-                Console.ResetColor();
+                Cp866.WriteLine(Console.OpenStandardError(), $"Ошибка при генерации отчета: {ex.Message}");
 
                 if (ex.InnerException != null)
-                    Console.Error.WriteLine($"Детали: {ex.InnerException.Message}");
+                    Cp866.WriteLine(Console.OpenStandardError(), $"Детали: {ex.InnerException.Message}");
+
+                Environment.Exit(1);
+            }
+        }
+
+        private static string ReadUserDataFromStdin()
+        {
+            byte[] bytes;
+            using (var stdin = Console.OpenStandardInput())
+            using (var buffer = new MemoryStream())
+            {
+                stdin.CopyTo(buffer);
+                bytes = buffer.ToArray();
+            }
+
+            if (bytes.Length == 0)
+                return string.Empty;
+
+            try
+            {
+                var strictUtf8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+                return strictUtf8.GetString(bytes);
+            }
+            catch (DecoderFallbackException)
+            {
+                return Cp866.Decode(bytes);
             }
         }
     }
@@ -65,25 +99,25 @@ namespace ExactProductStructureReport
         {
             if (items == null)
             {
-                Console.WriteLine("Нет данных для отображения");
+                Cp866.WriteLine(Console.OpenStandardOutput(), "Нет данных для отображения");
                 return;
             }
 
             var itemsList = items.ToList();
             if (itemsList.Count == 0)
             {
-                Console.WriteLine("Нет данных для отображения");
+                Cp866.WriteLine(Console.OpenStandardOutput(), "Нет данных для отображения");
                 return;
             }
 
             var prettyJson = JsonSerializer.Serialize(items, _options);
-            Console.WriteLine(prettyJson);
+            Cp866.WriteLine(Console.OpenStandardOutput(), prettyJson);
         }
     }
 }
 ```
 
-Опции сериализации необязательны, но без них JSON выводится в одну строку с экранированием — форматированный вывод удобнее при ручной проверке результата.
+Опции сериализации необязательны, но без них JSON выводится в одну строку с экранированием — форматированный вывод удобнее при ручной проверке результата. Сам вывод — через `Cp866.WriteLine`, не `Console.WriteLine` (см. предупреждение в начале раздела).
 
 ## Проверка написанного приложения
 
@@ -104,34 +138,38 @@ namespace ExactProductStructureReport
      }
    }
    ```
-3. Запустить приложение через PowerShell, передав `userdata.json` в stdin:
+3. Запустить приложение, передав `userdata.json` в stdin — PowerShell:
    ```powershell
    Get-Content userdata.json | .\ExactProductStructureReport.exe -a http://localhost:8076 --session <sessionId>
    ```
-4. В выводе должен появиться JSON-список объектов с нужными свойствами — значит всё работает правильно, можно переходить к разработке шаблона и регистрации отчёта.
+   или из WSL/bash:
+   ```bash
+   cat userdata.json | dotnet run -- -a http://localhost:8076 --session <sessionId>
+   ```
+   Раз декодер в `Program.cs` сам определяет UTF-8/CP866 (см. [[csharp-scripts-loading.md]]), локально можно пользоваться любым терминалом — PowerShell, cmd или WSL — результат должен быть одинаково корректным.
+4. В выводе должен появиться JSON-список объектов с нужными свойствами (кириллица должна отображаться нормально) — значит всё работает правильно, можно переходить к разработке шаблона и регистрации отчёта.
 
-### Локальный запуск из WSL (альтернатива PowerShell)
+### Если сервер приложений на этой же машине, а тестируете из WSL
 
-PowerShell на Windows по умолчанию использует не-UTF8 кодовую страницу консоли, из-за чего кириллица в `userdata.json` может побиться ещё на этапе передачи в stdin приложения (отдельно от проблемы кодировки на стороне службы выполнения скриптов, см. [[csharp-scripts-loading.md]]). Терминал WSL по умолчанию UTF-8, поэтому для локальной отладки может быть удобнее собирать и запускать проект прямо там:
+`localhost` внутри WSL2 не всегда указывает на Windows-хост. Если получаете
+`Connection refused`/таймаут при обращении на `localhost`, а сервер точно
+поднят на этой же машине:
 
-```bash
-# Установка .NET SDK 8 в WSL (Ubuntu/Debian), один раз
-wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
-chmod +x dotnet-install.sh
-./dotnet-install.sh --channel 8.0
-export PATH="$HOME/.dotnet:$PATH"   # добавить в ~/.bashrc, чтобы не повторять каждый раз
-
-# Если проект лежит на Windows-диске — он доступен из WSL по /mnt/<буква диска>/...
-cd /mnt/c/Users/<user>/путь/до/проекта
-
-dotnet build
-cat userdata.json | dotnet run -- -a http://<host>:<port> --session <sessionId>
-```
-
-WSL2 обычно имеет сетевой доступ к тем же хостам, что и Windows, так что обращение к реальному серверу приложений ЛОЦМАН:PLM работает без дополнительной настройки.
+1. Проверьте, что сервер слушает не только `127.0.0.1`, а все интерфейсы:
+   ```powershell
+   netstat -ano | findstr :8076
+   ```
+   Строка вида `0.0.0.0:8076 ... LISTENING` — ок. Если видно только
+   `127.0.0.1:8076` — сервер принимает соединения только с себя, из WSL не
+   достучаться в принципе, дело не в файрволе.
+2. Если слушает `0.0.0.0` — скорее всего блокирует файрвол Windows. Либо
+   открыть порт для подсети WSL, либо (проще) тестировать прямо из PowerShell/cmd
+   на этой же машине, не из WSL — раз декодер сам умеет и UTF-8, и CP866,
+   отдельно WSL ради корректной кириллицы больше не нужен (см. выше).
 
 ## Связанные узлы
 
 - [[csharp-scripts-structure.md]] — структура
 - [[csharp-scripts-automation.md]] — сбор данных
+- [[csharp-scripts-loading.md]] — кодировка stdin/stdout/stderr (Cp866)
 - [[report-template-binding.md]] — привязка результата к шаблону FastReport

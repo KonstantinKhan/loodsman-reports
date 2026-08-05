@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace CSharp
 {
     internal class Program
@@ -82,10 +84,10 @@ namespace CSharp
 
             try
             {
-                var strictUtf8 = new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+                var strictUtf8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
                 return strictUtf8.GetString(bytes);
             }
-            catch (System.Text.DecoderFallbackException)
+            catch (DecoderFallbackException)
             {
                 return Cp866.Decode(bytes);
             }

@@ -8,16 +8,13 @@ namespace CSharp
         public string ApiVersion { get; set; } = "4";
         public int RequestTimeoutSeconds { get; set; } = 30;
         public string AppServerHost { get; set; } = "http://localhost:8076";
-        public string SessionId { get; set; }
+        public string SessionId { get; set; } = string.Empty;
 
         [JsonPropertyName("object_ids")]
         public List<int> ObjectIds { get; set; } = new();
 
         [JsonPropertyName("params")]
         public Dictionary<string, object?> Params { get; set; } = new();
-
-        [JsonPropertyName("conf_rules")]
-        public ConfRules? ConfRules { get; set; }
 
         public string GetStringParameterByName(string parameterName)
         {
@@ -98,38 +95,5 @@ namespace CSharp
 
             return false;
         }
-    }
-
-    public class ConfRules
-    {
-        [JsonPropertyName("rule_id")]
-        public int RuleId { get; set; }
-
-        [JsonPropertyName("final_product_id")]
-        public int FinalProductId { get; set; }
-
-        [JsonPropertyName("path")]
-        public List<int> Path { get; set; } = new();
-
-        [JsonPropertyName("rule_params")]
-        public List<RuleParam> RuleParams { get; set; } = new();
-
-        [JsonPropertyName("fixed_context_id")]
-        public int FixedContextId { get; set; }
-    }
-
-    public class RuleParam
-    {
-        [JsonPropertyName("param_name")]
-        public string ParamName { get; set; } = string.Empty;
-
-        [JsonPropertyName("param_type")]
-        public int ParamType { get; set; }
-
-        [JsonPropertyName("param_value")]
-        public string ParamValue { get; set; } = string.Empty;
-
-        [JsonPropertyName("is_any")]
-        public bool IsAny { get; set; }
     }
 }

@@ -170,18 +170,25 @@ namespace ExactProductStructureReport
 
 Служба выполнения скриптов на Windows **не всегда** передаёт `userData` в UTF-8 — на практике встречается Windows-1251. Если декодировать stdin как UTF-8 напрямую, кириллица в ключах `params` побьётся (символы заменятся на replacement character), и `GetStringParameterByName` не найдёт нужный параметр, хотя в логах он как будто есть.
 
-Рабочий вариант — читать stdin как сырые байты и пробовать декодировать сначала строго как UTF-8, при ошибке — как Windows-1251. Для `Encoding.GetEncoding(1251)` в .NET (Core/5+) нужен пакет `System.Text.Encoding.CodePages` и регистрация провайдера (тот же приём используется и в шаблоне "C# ServerAPI скрипт" для тех же целей):
+Рабочий вариант — читать stdin как сырые байты и пробовать декодировать сначала строго как UTF-8, при ошибке — как Windows-1251.
 
-```xml
-<ItemGroup>
-  <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
-</ItemGroup>
-```
+> **Важно**: `Encoding.GetEncoding(1251)` в .NET (Core/5+) штатно требует пакет
+> `System.Text.Encoding.CodePages` и регистрацию `CodePagesEncodingProvider`.
+> **Не используйте этот пакет в скриптах для службы выполнения скриптов** —
+> она восстанавливает NuGet-зависимости только из своего локального офлайн-источника
+> (`...\GlobalScriptService\data\uploads\<guid>\nuget-packages`), внешнего доступа
+> в интернет для `dotnet restore` там нет. Любой внешний `PackageReference` даёт
+> `NU1301: Локальный источник ... не существует`, и сборка на сервере падает — даже
+> если она проходила локально на машине разработчика с доступом в NuGet.org.
+>
+> Вместо пакета — декодировать Windows-1251 вручную явной таблицей (self-contained,
+> без внешних зависимостей). Диапазон `0x00-0x7F` — ASCII как есть, `0xC0-0xFF` —
+> кириллица А-Я/а-я одним смещением (`byte + 0x350`), `0x80-0xBF` — набор
+> разрозненных символов (кавычки, Ё/ё, №, тире и т.п.), которые можно взять только
+> явной таблицей из стандарта CP1251.
 
 ```csharp
 using System.Text;
-
-Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
 static string ReadUserDataFromStdin()
 {
@@ -203,8 +210,37 @@ static string ReadUserDataFromStdin()
     }
     catch (DecoderFallbackException)
     {
-        return Encoding.GetEncoding(1251).GetString(bytes);
+        return DecodeWindows1251(bytes);
     }
+}
+
+// 0x80-0xBF из таблицы Windows-1251 (Unicode.org CP1251.TXT)
+private static readonly char[] Cp1251SpecialBlock =
+{
+    'Ђ', 'Ѓ', '‚', 'ѓ', '„', '…', '†', '‡',
+    '€', '‰', 'Љ', '‹', 'Њ', 'Ќ', 'Ћ', 'Џ',
+    'ђ', '‘', '’', '“', '”', '•', '–', '—',
+    '?',      '™', 'љ', '›', 'њ', 'ќ', 'ћ', 'џ',
+    ' ', 'Ў', 'ў', 'Ј', '¤', 'Ґ', '¦', '§',
+    'Ё', '©', 'Є', '«', '¬', '­', '®', 'Ї',
+    '°', '±', 'І', 'і', 'ґ', 'µ', '¶', '·',
+    'ё', '№', 'є', '»', 'ј', 'Ѕ', 'ѕ', 'ї'
+};
+
+static string DecodeWindows1251(byte[] bytes)
+{
+    var chars = new char[bytes.Length];
+    for (int i = 0; i < bytes.Length; i++)
+    {
+        byte b = bytes[i];
+        chars[i] = b switch
+        {
+            < 0x80 => (char)b,
+            < 0xC0 => Cp1251SpecialBlock[b - 0x80],
+            _ => (char)(b + 0x350)
+        };
+    }
+    return new string(chars);
 }
 ```
 

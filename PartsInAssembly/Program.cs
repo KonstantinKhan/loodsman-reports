@@ -10,9 +10,6 @@ namespace CSharp
 
         static async Task Main(string[] args)
         {
-            // Регистрируем провайдер codepages — без него Encoding.GetEncoding(1251) кидает исключение
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-
             // Явно фиксируем UTF-8 для вывода — вывод (JSON-результат) мы формируем сами,
             // поэтому кодировка на выходе под контролем
             Console.OutputEncoding = Encoding.UTF8;
@@ -91,8 +88,43 @@ namespace CSharp
             }
             catch (DecoderFallbackException)
             {
-                return Encoding.GetEncoding(1251).GetString(bytes);
+                return DecodeWindows1251(bytes);
             }
+        }
+
+        // Ручной декодер Windows-1251 — без пакета System.Text.Encoding.CodePages,
+        // т.к. служба выполнения скриптов восстанавливает NuGet только из локального
+        // офлайн-источника, внешние пакеты там недоступны.
+        //
+        // 0x00-0x7F — ASCII как есть.
+        // 0xC0-0xFF — кириллица А-Я,а-я одним диапазоном (byte + 0x350).
+        // 0x80-0xBF — разрозненные символы (кавычки, Ё/ё, №, спецсимволы) — только таблицей.
+        private static readonly char[] Cp1251SpecialBlock =
+        {
+            'Ђ', 'Ѓ', '‚', 'ѓ', '„', '…', '†', '‡',
+            '€', '‰', 'Љ', '‹', 'Њ', 'Ќ', 'Ћ', 'Џ',
+            'ђ', '‘', '’', '“', '”', '•', '–', '—',
+            '?',      '™', 'љ', '›', 'њ', 'ќ', 'ћ', 'џ',
+            ' ', 'Ў', 'ў', 'Ј', '¤', 'Ґ', '¦', '§',
+            'Ё', '©', 'Є', '«', '¬', '­', '®', 'Ї',
+            '°', '±', 'І', 'і', 'ґ', 'µ', '¶', '·',
+            'ё', '№', 'є', '»', 'ј', 'Ѕ', 'ѕ', 'ї'
+        };
+
+        private static string DecodeWindows1251(byte[] bytes)
+        {
+            var chars = new char[bytes.Length];
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                byte b = bytes[i];
+                chars[i] = b switch
+                {
+                    < 0x80 => (char)b,
+                    < 0xC0 => Cp1251SpecialBlock[b - 0x80],
+                    _ => (char)(b + 0x350)
+                };
+            }
+            return new string(chars);
         }
     }
 }

@@ -7,10 +7,4 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <!-- Нужен для Encoding.GetEncoding(1251) — служба выполнения скриптов на Windows
-         иногда передаёт userData не в UTF-8, а в Windows-1251 -->
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
-  </ItemGroup>
-
 </Project>

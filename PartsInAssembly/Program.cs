@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 
 namespace CSharp
 {
@@ -34,11 +34,8 @@ namespace CSharp
                     else
                     {
                         var foundKeys = string.Join(", ", config.Params.Keys);
-                        // base64 от UTF-8-байт — чтобы диагностировать реальное содержимое ключей
-                        // независимо от того, как консоль отрендерит кириллицу
-                        var foundKeysBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(foundKeys));
                         Console.Error.WriteLine(
-                            $"Предупреждение: параметр \"Глубина разузловки\" не задан или некорректен, использую значение по умолчанию {DefaultMaxDepth}. Найденные ключи params: {foundKeys} [base64: {foundKeysBase64}]");
+                            $"Предупреждение: параметр \"Глубина разузловки\" не задан или некорректен, использую значение по умолчанию {DefaultMaxDepth}. Найденные ключи params: {foundKeys}");
                     }
                     maxDepth = DefaultMaxDepth;
                 }
@@ -74,8 +71,9 @@ namespace CSharp
         }
 
         /// <summary>
-        /// Читает userData из stdin. Служба выполнения скриптов на Windows не всегда
-        /// передаёт данные в UTF-8 — пробуем UTF-8 (строго), при ошибке — Windows-1251.
+        /// Читает userData из stdin. Служба выполнения скриптов на Windows передаёт
+        /// данные не в UTF-8, а в OEM-кодировке консоли (CP866 на русской Windows) —
+        /// пробуем UTF-8 (строго), при ошибке — CP866.
         /// </summary>
         private static string ReadUserDataFromStdin()
         {
@@ -97,30 +95,32 @@ namespace CSharp
             }
             catch (DecoderFallbackException)
             {
-                return DecodeWindows1251(bytes);
+                return DecodeCp866(bytes);
             }
         }
 
-        // Ручной декодер Windows-1251 — без пакета System.Text.Encoding.CodePages,
+        // Ручной декодер CP866 — без пакета System.Text.Encoding.CodePages,
         // т.к. служба выполнения скриптов восстанавливает NuGet только из локального
         // офлайн-источника, внешние пакеты там недоступны.
         //
         // 0x00-0x7F — ASCII как есть.
-        // 0xC0-0xFF — кириллица А-Я,а-я одним диапазоном (byte + 0x350).
-        // 0x80-0xBF — разрозненные символы (кавычки, Ё/ё, №, спецсимволы) — только таблицей.
-        private static readonly char[] Cp1251SpecialBlock =
+        // 0x80-0xAF — А-Я, а-п (byte + 0x390).
+        // 0xB0-0xDF — псевдографика (только таблицей).
+        // 0xE0-0xEF — р-я (byte + 0x360).
+        // 0xF0-0xFF — Ё/ё/Є/є/Ї/ї/Ў/ў и спецсимволы (только таблицей).
+        private static readonly char[] Cp866BoxDrawingBlock =
         {
-            'Ђ', 'Ѓ', '‚', 'ѓ', '„', '…', '†', '‡',
-            '€', '‰', 'Љ', '‹', 'Њ', 'Ќ', 'Ћ', 'Џ',
-            'ђ', '‘', '’', '“', '”', '•', '–', '—',
-            '?',      '™', 'љ', '›', 'њ', 'ќ', 'ћ', 'џ',
-            ' ', 'Ў', 'ў', 'Ј', '¤', 'Ґ', '¦', '§',
-            'Ё', '©', 'Є', '«', '¬', '­', '®', 'Ї',
-            '°', '±', 'І', 'і', 'ґ', 'µ', '¶', '·',
-            'ё', '№', 'є', '»', 'ј', 'Ѕ', 'ѕ', 'ї'
+            '░', '▒', '▓', '│', '┤', '╡', '╢', '╖', '╕', '╣', '║', '╗', '╝', '╜', '╛', '┐',
+            '└', '┴', '┬', '├', '─', '┼', '╞', '╟', '╚', '╔', '╩', '╦', '╠', '═', '╬', '╧',
+            '╨', '╤', '╥', '╙', '╘', '╒', '╓', '╫', '╪', '┘', '┌', '█', '▄', '▌', '▐', '▀'
         };
 
-        private static string DecodeWindows1251(byte[] bytes)
+        private static readonly char[] Cp866SpecialBlock =
+        {
+            'Ё', 'ё', 'Є', 'є', 'Ї', 'ї', 'Ў', 'ў', '°', '∙', '·', '√', '№', '¤', '■', ' '
+        };
+
+        private static string DecodeCp866(byte[] bytes)
         {
             var chars = new char[bytes.Length];
             for (int i = 0; i < bytes.Length; i++)
@@ -129,8 +129,10 @@ namespace CSharp
                 chars[i] = b switch
                 {
                     < 0x80 => (char)b,
-                    < 0xC0 => Cp1251SpecialBlock[b - 0x80],
-                    _ => (char)(b + 0x350)
+                    < 0xB0 => (char)(b + 0x390),
+                    < 0xE0 => Cp866BoxDrawingBlock[b - 0xB0],
+                    < 0xF0 => (char)(b + 0x360),
+                    _ => Cp866SpecialBlock[b - 0xF0]
                 };
             }
             return new string(chars);

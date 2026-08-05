@@ -26,11 +26,20 @@ namespace CSharp
                 int maxDepth;
                 if (!int.TryParse(depthStr, out maxDepth) || maxDepth < 1)
                 {
-                    var foundKeys = config.Params.Count == 0
-                        ? "(params пустой — параметр \"Глубина разузловки\", вероятно, не настроен в регистрации отчёта в Конфигураторе)"
-                        : string.Join(", ", config.Params.Keys);
-                    Console.Error.WriteLine(
-                        $"Предупреждение: параметр \"Глубина разузловки\" не задан или некорректен, использую значение по умолчанию {DefaultMaxDepth}. Найденные ключи params: {foundKeys}");
+                    if (config.Params.Count == 0)
+                    {
+                        Console.Error.WriteLine(
+                            $"Предупреждение: params пустой — параметр \"Глубина разузловки\", вероятно, не настроен в регистрации отчёта в Конфигураторе. Использую значение по умолчанию {DefaultMaxDepth}.");
+                    }
+                    else
+                    {
+                        var foundKeys = string.Join(", ", config.Params.Keys);
+                        // base64 от UTF-8-байт — чтобы диагностировать реальное содержимое ключей
+                        // независимо от того, как консоль отрендерит кириллицу
+                        var foundKeysBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(foundKeys));
+                        Console.Error.WriteLine(
+                            $"Предупреждение: параметр \"Глубина разузловки\" не задан или некорректен, использую значение по умолчанию {DefaultMaxDepth}. Найденные ключи params: {foundKeys} [base64: {foundKeysBase64}]");
+                    }
                     maxDepth = DefaultMaxDepth;
                 }
 

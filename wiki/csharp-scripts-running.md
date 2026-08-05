@@ -1,58 +1,139 @@
-# Запуск C# скриптов
+# Подключение к серверу приложений (HttpClient)
 
-## Командная строка
+Для взаимодействия с WebAPI сервера приложений используется стандартный `HttpClient`.
 
-### dotnet-script
+Создаётся отдельный класс `LoodsmanApiClient` с методами для запроса информации. Класс публичный, содержит `HttpClient` и ранее подготовленный `AppConfiguration` (подход "manual dependency passing" — конфигурация приходит извне, транспорт конструируется при инициализации).
 
-```bash
-# Запуск скрипта
-dotnet-script script.csx
-
-# С передачей аргументов
-dotnet-script script.csx -- arg1 arg2
-```
-
-### Доступ к аргументам
+## Инициализация HTTP-клиента
 
 ```csharp
-// Аргументы доступны через Args
-foreach (var arg in Args)
+_httpClient = new HttpClient
 {
-    Console.WriteLine($"Arg: {arg}");
+    BaseAddress = new Uri($"{_config.AppServerHost}/api/v{_config.ApiVersion}/"),
+    Timeout = TimeSpan.FromSeconds(_config.RequestTimeoutSeconds)
+};
+_httpClient.DefaultRequestHeaders.Add("web-loodsman-session", _config.SessionId);
+```
+
+- `BaseAddress` собирается из хоста, версии API (`_config.ApiVersion`, актуально — `"4"`) и стандартного пути `/api/`, позволяет использовать относительные пути в запросах;
+- `Timeout` — из `_config.RequestTimeoutSeconds` (обычно 60 секунд достаточно для любой из конечных точек);
+- заголовок `web-loodsman-session` — обязательный способ аутентификации запросов к WebAPI ЛОЦМАН:PLM, значение — идентификатор сессии, полученный из параметра `--session`.
+
+## Методы запроса данных
+
+Пример для отчёта, использующего 4 конечные точки (пути и параметры сверены с `swagger.lapis`):
+
+```csharp
+using System.Net.Http.Json;
+
+namespace ExactProductStructureReport
+{
+    public class LoodsmanApiClient : IDisposable
+    {
+        private readonly HttpClient _httpClient;
+        private readonly AppConfiguration _config;
+
+        public LoodsmanApiClient(AppConfiguration config)
+        {
+            _config = config ?? throw new ArgumentNullException(nameof(config));
+
+            _httpClient = new HttpClient
+            {
+                BaseAddress = new Uri($"{_config.AppServerHost}/api/v{_config.ApiVersion}/"),
+                Timeout = TimeSpan.FromSeconds(_config.RequestTimeoutSeconds)
+            };
+
+            _httpClient.DefaultRequestHeaders.Add("web-loodsman-session", _config.SessionId);
+        }
+
+        public async Task<List<ObjectInfo>> GetObjectInfoAsync(int idVersion)
+        {
+            try
+            {
+                var result = await _httpClient.GetFromJsonAsync<List<ObjectInfo>>(
+                    $"ObjectInfo/get-prop-objects?objectList={idVersion}");
+
+                return result ?? new List<ObjectInfo>();
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new InvalidOperationException($"Ошибка при получении информации об объекте {idVersion}", ex);
+            }
+            catch (TaskCanceledException ex)
+            {
+                throw new TimeoutException($"Превышено время ожидания при получении информации об объекте {idVersion}", ex);
+            }
+        }
+
+        public async Task<List<ObjectInfo>> GetLinkedObjectsAsync(int idVersion, string linkType)
+        {
+            try
+            {
+                var result = await _httpClient.GetFromJsonAsync<List<ObjectInfo>>(
+                    $"ObjectInfo/get-linked-fast?idVersion={idVersion}&linkType={linkType}");
+
+                return result ?? new List<ObjectInfo>();
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new InvalidOperationException($"Ошибка при получении связанных объектов для версии {idVersion}", ex);
+            }
+            catch (TaskCanceledException ex)
+            {
+                throw new TimeoutException($"Превышено время ожидания при получении связанных объектов для версии {idVersion}", ex);
+            }
+        }
+
+        public async Task<List<Attributes>> GetVersionAttributesAsync(int idVersion)
+        {
+            try
+            {
+                var result = await _httpClient.GetFromJsonAsync<List<Attributes>>(
+                    $"ObjectInfo/get-info-about-version-mode-3?idVersion={idVersion}");
+
+                return result ?? new List<Attributes>();
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new InvalidOperationException($"Ошибка при получении атрибутов версии {idVersion}", ex);
+            }
+            catch (TaskCanceledException ex)
+            {
+                throw new TimeoutException($"Превышено время ожидания при получении атрибутов версии {idVersion}", ex);
+            }
+        }
+
+        public async Task<List<Attributes>> GetLinkAttributesAsync(int linkId)
+        {
+            try
+            {
+                var result = await _httpClient.GetFromJsonAsync<List<Attributes>>(
+                    $"ObjectInfo/get-link-attributes-2?linkId={linkId}&mode=0");
+
+                return result ?? new List<Attributes>();
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new InvalidOperationException($"Ошибка при получении атрибутов связи {linkId}", ex);
+            }
+            catch (TaskCanceledException ex)
+            {
+                throw new TimeoutException($"Превышено время ожидания при получении атрибутов связи {linkId}", ex);
+            }
+        }
+
+        public void Dispose()
+        {
+            _httpClient?.Dispose();
+        }
+    }
 }
 ```
 
-## Работа с вводом-выводом
-
-```csharp
-// Вывод
-Console.WriteLine("Output message");
-Console.Write("Without newline");
-Console.Error.WriteLine("Error message");
-
-// Ввод
-var input = Console.ReadLine();
-Console.WriteLine($"You entered: {input}");
-```
-
-## Возврат кода выхода
-
-```csharp
-Environment.Exit(0);  // Успех
-Environment.Exit(1);  // Ошибка
-```
-
-## Запуск с интерактивной консолью
-
-```bash
-dotnet-script interactive
-```
-
-## Отладка через VS Code
-
-Подробнее: [[vscode-debug-scripts.md]]
+> Параметр метода `get-link-attributes-2` в `swagger.lapis` называется `linkId` (не `idLink`) — использовать именно это имя в query-строке.
 
 ## Связанные узлы
 
-- [[csharp-scripts-basics.md]] — основы
-- [[vscode-setup-for-csharp-scripts.md]] — настройка окружения
+- [[csharp-scripts-prototyping.md]] — подготовка моделей и изучение эндпоинтов
+- [[csharp-scripts-structure.md]] — структура
+- [[csharp-scripts-automation.md]] — сбор и маппинг данных

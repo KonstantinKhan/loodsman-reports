@@ -1,74 +1,41 @@
-# Зависимости C# скриптов
+# Создание проекта
 
-## Директива #r
+## Необходимые инструменты
 
-Ссылки на сборки:
+- Visual Studio 2026 — https://visualstudio.microsoft.com/ru/vs/community/
+- .NET SDK 8 — https://dotnet.microsoft.com/ru-ru/download/dotnet/8.0
 
-```csharp
-// Ссылка на GAC
-#r "System.Data"
-#r "System.Net.Http"
+## Тип проекта
 
-// Ссылка на локальную сборку
-#r "./libs/MyLib.dll"
+Ограничений по типу проекта для пользовательских приложений нет, но самым стабильным и удобным в разработке является **консольное приложение на C#**.
 
-// Абсолютный путь
-#r "/usr/local/lib/lib.dll"
-```
+Версию .NET нужно выбирать исходя из текущих требований к серверной части ЛОЦМАН:PLM — на момент написания это **.NET 8**.
 
-## NuGet-пакеты
-
-```csharp
-// Загрузка пакета из NuGet
-#r "nuget: Newtonsoft.Json, 13.0.1"
-#r "nuget: Serilog"
-#r "nuget: CsvHelper"
-
-// Использование пакета
-using Newtonsoft.Json;
-var json = JsonConvert.SerializeObject(new { Name = "Test" });
-```
-
-## Ссылки на .NET runtime
-
-```csharp
-// Microsoft.NETCore.App
-#r "nuget: Microsoft.NETCore.App"
-```
-
-## Управление зависимостями
-
-### Через командную строку
-
-```bash
-dotnet script init
-# Создает script.csx и script.csproj
-```
-
-### script.csproj
+`.csproj` минимального проекта:
 
 ```xml
 <Project Sdk="Microsoft.NET.Sdk">
-  <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="Serilog" Version="3.0.1" />
-  </ItemGroup>
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
 </Project>
 ```
 
-## Множественные зависимости
+Проект типа «Консольное приложение» после создания содержит один файл `Program.cs` с методом `Main` — точкой входа в приложение.
 
-```csharp
-#r "nuget: Newtonsoft.Json"
-#r "nuget: Serilog"
-#r "nuget: CsvHelper"
+## Внешние зависимости
 
-using Newtonsoft.Json;
-using Serilog;
-using CsvHelper;
-```
+Для описанного в этом разделе шаблона **дополнительные NuGet-пакеты не требуются** — используются только сборки базового класса .NET:
+
+- `System.Text.Json` — сериализация/десериализация JSON (конфигурация, вывод отчёта);
+- `System.Net.Http` / `System.Net.Http.Json` — HTTP-клиент для WebAPI.
+
+Если конкретному отчёту нужны сторонние библиотеки — они подключаются стандартным способом через NuGet (`<PackageReference>` в `.csproj` или менеджер пакетов Visual Studio).
 
 ## Связанные узлы
 
-- [[csharp-scripts-loading.md]] — загрузка файлов
+- [[csharp-scripts-structure.md]] — структура и классы шаблона
 - [[csharp-scripts-basics.md]] — основы

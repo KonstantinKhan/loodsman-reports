@@ -109,14 +109,19 @@
 - **API:** [[bo-reference-api.md]] - BO Reference API
 
 ## C# Scripts
-- [[csharp-scripts-basics.md]] - Основы C# скриптов
-- [[csharp-scripts-structure.md]] - Структура скриптов
-- [[csharp-scripts-references.md]] - Ссылки на сборки
-- [[csharp-scripts-loading.md]] - Загрузка скриптов
-- [[csharp-scripts-running.md]] - Запуск скриптов
-- [[csharp-scripts-automation.md]] - Автоматизация скриптов
-- [[csharp-scripts-prototyping.md]] - Прототипирование
-- [[csharp-scripts-best-practices.md]] - Лучшие практики
+
+Отчёты типа "C# скрипт" — консольные .NET-проекты, вызывающие WebAPI сервера
+приложений ЛОЦМАН:PLM (REST, см. `swagger.lapis`). Это не `.csx`-скрипты.
+
+- [[csharp-scripts-basics.md]] - Основы: что такое отчёт "C# скрипт", требования, общий пайплайн
+- [[csharp-scripts-structure.md]] - Структура и служебные классы шаблона
+- [[csharp-scripts-references.md]] - Создание проекта и зависимости
+- [[csharp-scripts-loading.md]] - Получение адреса СП, сессии и пользовательских данных
+- [[csharp-scripts-prototyping.md]] - Подготовка моделей данных через Swagger
+- [[csharp-scripts-running.md]] - Подключение к серверу приложений (HttpClient)
+- [[csharp-scripts-automation.md]] - Получение данных и маппинг в модели
+- [[csharp-scripts-best-practices.md]] - Точка входа, вывод результата, локальное тестирование
+- [[report-template-binding.md]] - Привязка результата скрипта к шаблону FastReport
 
 ## VS Code для C# Scripts
 - [[vscode-setup-for-csharp-scripts.md]] - Настройка VS Code

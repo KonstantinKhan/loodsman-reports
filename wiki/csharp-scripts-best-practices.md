@@ -1,115 +1,117 @@
-# Best practices для C# скриптов
+# Основная программа, вывод результата и локальное тестирование
 
-## Организация кода
+## Program.cs — сбор и возврат данных
 
-### Разделяйте логику
-
-```csharp
-// Хорошо
-#load "utils.csx"
-#load "handlers.csx"
-
-var data = LoadData();
-var result = ProcessData(data);
-SaveResult(result);
-```
-
-### Используйте функции
+Точка входа собирает все компоненты, запускает генерацию отчёта и выводит результат:
 
 ```csharp
-// Хорошо
-void LogInfo(string message) => Console.WriteLine($"[INFO] {message}");
-
-// Вместо дублирования
-Console.WriteLine($"[INFO] {msg1}");
-Console.WriteLine($"[INFO] {msg2}");
-```
-
-## Обработка ошибок
-
-```csharp
-try
+namespace ExactProductStructureReport
 {
-    var data = File.ReadAllText("data.json");
-    ProcessData(data);
-}
-catch (FileNotFoundException ex)
-{
-    Console.Error.WriteLine($"File not found: {ex.Message}");
-    Environment.Exit(1);
-}
-catch (Exception ex)
-{
-    Console.Error.WriteLine($"Error: {ex.Message}");
-    Environment.Exit(1);
+    internal class Program
+    {
+        static async Task Main(string[] args)
+        {
+            try
+            {
+                // Заполняем конфигурацию из потока ввода и аргументов
+                var config = AppConfiguration.GetConfiguration(args, Console.In.ReadToEnd());
+
+                // Инициализируем API-клиент
+                var apiClient = new LoodsmanApiClient(config);
+
+                // Инициализируем сервис сбора данных
+                var reportService = new ReportService(apiClient, config);
+
+                // Генерируем список строк отчёта
+                var report = await reportService.GenerateReportAsync(
+                    config.ObjectIds.First(),
+                    int.Parse(config.GetStringParameterByName("Глубина разузловки")));
+
+                ReportPrinter.PrintJson(report);
+            }
+            catch (Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Error.WriteLine($"Ошибка при генерации отчета: {ex.Message}");
+                Console.ResetColor();
+
+                if (ex.InnerException != null)
+                    Console.Error.WriteLine($"Детали: {ex.InnerException.Message}");
+            }
+        }
+    }
 }
 ```
 
-## Логирование
+## ReportPrinter.cs — вывод в JSON
 
 ```csharp
-// Простое логирование
-void Log(string level, string message) => 
-    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [{level}] {message}");
+using System.Text.Encodings.Web;
+using System.Text.Json;
 
-LogInfo("Starting script");
-LogError("Something went wrong");
-```
-
-## Тестирование скриптов
-
-```csharp
-// Тестовые функции
-void TestAdd()
+namespace ExactProductStructureReport
 {
-    var result = Add(2, 3);
-    if (result != 5) throw new Exception("Test failed");
+    public static class ReportPrinter
+    {
+        private static readonly JsonSerializerOptions _options = new()
+        {
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            PropertyNameCaseInsensitive = true,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        };
+
+        public static void PrintJson<T>(IEnumerable<T> items)
+        {
+            if (items == null)
+            {
+                Console.WriteLine("Нет данных для отображения");
+                return;
+            }
+
+            var itemsList = items.ToList();
+            if (itemsList.Count == 0)
+            {
+                Console.WriteLine("Нет данных для отображения");
+                return;
+            }
+
+            var prettyJson = JsonSerializer.Serialize(items, _options);
+            Console.WriteLine(prettyJson);
+        }
+    }
 }
-
-TestAdd();
 ```
 
-## Проверка аргументов
+Опции сериализации необязательны, но без них JSON выводится в одну строку с экранированием — форматированный вывод удобнее при ручной проверке результата.
 
-```csharp
-if (Args.Length == 0)
-{
-    Console.WriteLine("Usage: script.csx <input>");
-    Environment.Exit(1);
-}
-```
+## Проверка написанного приложения
 
-## Использование using
+Проверить работоспособность удобнее всего загрузив скрипт в редактор, встроенный в веб-приложение "ЛОЦМАН-Конфигуратор" (см. [[report-template-binding.md]]). Но возможна и локальная проверка — потребуется:
 
-```csharp
-using var reader = new StreamReader("file.txt");
-var content = reader.ReadToEnd();
-// Автоматический dispose
-```
+- адрес сервера приложений ЛОЦМАН (например, `http://localhost:8076`);
+- идентификатор активной сессии (получить в Swagger через `/api/v4/Auth/login`, см. [[csharp-scripts-prototyping.md]]);
+- входные параметры отчёта (`userdata.json`).
 
-## Комментирование кода
-
-```csharp
-// Однострочный комментарий
-
-/*
-  Многострочный
-  комментарий
-*/
-
-/// <summary>
-/// XML документация
-/// </summary>
-```
-
-## Производительность
-
-- Кэшируйте результаты повторных операций
-- Используйте `StringBuilder` для конкатенации строк
-- Избегайте ненужных аллокаций
+1. Собрать приложение (`dotnet build` или сборка в Visual Studio) — в логе сборки будет путь к бинарным файлам.
+2. В папке со скомпилированным приложением создать `userdata.json`, например:
+   ```json
+   {
+     "object_ids": [1012],
+     "params": {
+       "Глубина разузловки": "3",
+       "Тип связи": "Состоит из ..."
+     }
+   }
+   ```
+3. Запустить приложение через PowerShell, передав `userdata.json` в stdin:
+   ```powershell
+   Get-Content userdata.json | .\ExactProductStructureReport.exe -a http://localhost:8076 --session <sessionId>
+   ```
+4. В выводе должен появиться JSON-список объектов с нужными свойствами — значит всё работает правильно, можно переходить к разработке шаблона и регистрации отчёта.
 
 ## Связанные узлы
 
 - [[csharp-scripts-structure.md]] — структура
-- [[csharp-scripts-automation.md]] — автоматизация
-- [[csharp-scripts-prototyping.md]] — прототипирование
+- [[csharp-scripts-automation.md]] — сбор данных
+- [[report-template-binding.md]] — привязка результата к шаблону FastReport

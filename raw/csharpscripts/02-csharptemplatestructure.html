@@ -1,0 +1,1456 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="01-csharpscriptsoverview.html">
+      
+      
+        <link rel="next" href="03-csharp-create-project.html">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../img/fav.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Структура и служебные классы шаблона - Руководство по разработке серверных отчетов</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#appconfigurationcs" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../index.html" title="Руководство по разработке серверных отчетов" class="md-header__button md-logo" aria-label="Руководство по разработке серверных отчетов" data-md-component="logo">
+      
+  <img src="../img/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Руководство по разработке серверных отчетов
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Структура и служебные классы шаблона
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../index.html" title="Руководство по разработке серверных отчетов" class="md-nav__button md-logo" aria-label="Руководство по разработке серверных отчетов" data-md-component="logo">
+      
+  <img src="../img/logo.png" alt="logo">
+
+    </a>
+    Руководство по разработке серверных отчетов
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Общая информация
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Разработка скриптов отбора данных
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Разработка скриптов отбора данных
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scripting.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Обзор
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Разработка скриптов типа "C# скрипт"
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Разработка скриптов типа "C# скрипт"
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="01-csharpscriptsoverview.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Что в этом разделе
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Структура и служебные классы шаблона
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="02-csharptemplatestructure.html" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Структура и служебные классы шаблона
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#appconfigurationcs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AppConfiguration.cs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#appclientcs-loodsmanapiclient" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AppClient.cs (LoodsmanApiClient)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#modelscs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Models.cs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#programcs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Program.cs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reportservicecs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ReportService.cs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reportprintercs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ReportPrinter.cs
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="03-csharp-create-project.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Создание проекта
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="04-gathering-script-params.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Получение адреса СП, идентификатора сессии и пользовательских данных
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="05-models.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Подготовка моделей данных с помощью документации OpenApi(Swagger)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="06-acess-to-server.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Подключение к СП (HttpClient)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="07-gathering-data.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Получение данных из СП и маппинг в подготовленные модели
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="08-program.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Основная программа. Сбор и возврат данных
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="09-test-app.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Проверка написанного приложения
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Разработка скриптов типа "C# ServerAPI скрипт"
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Разработка скриптов типа "C# ServerAPI скрипт"
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../serverapiscripts/01-serverapiscriptoverview.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Что в этом разделе
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../serverapiscripts/02-serverapitemplate.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Структура и служебные классы шаблона
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../serverapiscripts/03-serverapi-createproject.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Создание проекта
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../serverapiscripts/04-serverapi-entrancepoint.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Точка вход в библиотеку классов
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../serverapiscripts/05-serverapi-gatheringparams.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Извлечение данных из параметров скрипта
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../serverapiscripts/06-serverapi-references.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Включение библиотек-зависимостей в проект
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../serverapiscripts/07-serverapi-models.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Подготовка моделей данных
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../serverapiscripts/08-serverapi-mapper.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Подготовка инфраструктуры маппинга модели данных
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../serverapiscripts/09-serverapi-apiclient.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Разработка методов для получения информации от сервера приложений ЛОЦМАН:PLM
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../serverapiscripts/10-serverapi-globalsettings.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Добавление глобальных настроек
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../serverapiscripts/11-serverapi-gatheringdata.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Формирование данных для отчета
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../serverapiscripts/12-serverapi-resultprogram.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Основной метод. Сбор и возврат данных
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../serverapiscripts/13-serverapi-buildandtest.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Тестирование и сборка
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bind-to-template.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Привязка результатов выполнения скрипта к шаблону
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<p>Этот раздел описывает архитектуру и ключевые компоненты шаблона скрипта для ЛОЦМАН:PLM.<br />
+Понимание структуры этих классов необходимо для разработки новых отчётов и сервисов.</p>
+<h2 id="appconfigurationcs">AppConfiguration.cs</h2>
+<p>Этот файл отвечает за парсинг и хранение всех конфигурационных данных, поступающих в скрипт:</p>
+<ul>
+<li>адрес сервера приложений</li>
+<li>список идентификаторов объектов, по которым формируется отчет</li>
+<li>параметры формирования отчета</li>
+<li>правила ревизионного конфигурирования</li>
+<li>другие параметры</li>
+</ul>
+<hr />
+<ul>
+<li><strong>Класс AppConfiguration</strong><ul>
+<li><strong>Назначение:</strong> Является центральным хранилищем конфигурации приложения.<br />
+    Содержит как свойства, напрямую полученные из <strong>userData</strong> (JSON), так и вычисляемые или переопределённые через аргументы командной строки.</li>
+<li><strong>Ключевые свойства:</strong><ul>
+<li><strong>ApiVersion</strong> (string) - версия API сервера приложений.
+  По умолчанию <strong>"3".</strong></li>
+<li><strong>RequestTimeoutSeconds</strong> (int) - Таймаут для HTTP-запросов. 
+  По умолчанию <strong>60.</strong></li>
+<li><strong>AppServerHost</strong> (string) - Адрес сервера приложений. 
+  По умолчанию <strong>"http://localhost:8076".</strong> Переопределяется аргументом <strong>-a</strong> при запуске скрипта</li>
+<li><strong>SessionId</strong> (string) - Идентификатор сессии пользователя.<br />
+  Переопределяется аргументом <strong>--session</strong>, при запуске скрипта</li>
+<li><strong>ObjectIds</strong> (List\&lt;int&gt;) - Список идентификаторов объектов, по которым должен быть сформирован отчет.
+  Заполняется из поля <strong>object_ids</strong> параметра userData.</li>
+<li><strong>Params</strong> (Dictionary\&lt;string, object?&gt;) - Словарь пользовательских параметров (например, <strong>"Глубина разузловки", "Тип связи"</strong>).          <br />
+  Заполняется из поля <strong>params</strong>  параметра userData..</li>
+<li><strong>ConfRules</strong> (ConfRules?) - Объект с правилами версионного конфигурирования (может быть <strong>null</strong>).<br />
+  Заполняется из поля <strong>conf_rules</strong>  параметра userData..</li>
+</ul>
+</li>
+<li><strong>Ключевые методы:</strong><ul>
+<li><strong>GetStringParameterByName</strong>(string parameterName): Вспомогательный метод для безопасного получения строкового значения из словаря <strong>Params.</strong>
+  Возвращает <strong>string.Empty,</strong> если ключ не найден.</li>
+<li><strong>GetConfiguration</strong>(string[] arguments, string? userData): Статический метод, являющийся точкой входа для инициализации конфигурации.
+  Вызывает последовательно <strong>DeserializeFromJson</strong> и <strong>ApplyCommandLineArguments,</strong> возвращая полностью сконфигурированный объект <strong>AppConfiguration.</strong></li>
+<li><strong>DeserializeFromJson</strong>(string? userData): Приватный статический метод.
+  Десериализует входящую JSON-строку (<strong>userData</strong>) в объект <strong>AppConfiguration.</strong> 
+  Обрабатывает возможный BOM (Byte Order Mark) и пустые строки.</li>
+<li><strong>ApplyConfigParameters</strong>(AppConfiguration config): Приватный статический метод. 
+  Переопределяет свойства <strong>ApiVersion</strong> и <strong>RequestTimeoutSeconds</strong> значениями из словаря <strong>Params,</strong> если они там присутствуют.</li>
+<li><strong>ApplyCommandLineArguments</strong>(AppConfiguration config, string[] arguments): Приватный статический метод. 
+  Извлекает аргументы командной строки (<strong>-a</strong>, <strong>--session</strong>) и присваивает их соответствующим свойствам объекта <strong>config.</strong></li>
+<li><strong>TryGetArgumentValue(...):</strong> Приватный статический метод. 
+  Вспомогательный метод для поиска значения конкретного аргумента в массиве аргументов командной строки.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>Класс ConfRules (вложенный)</strong><ul>
+<li><strong>Назначение:</strong> Хранит правила конфигурирования, переданные в <strong>userData</strong>.  </li>
+</ul>
+</li>
+<li><strong>Класс RuleParam (вложенный)</strong><ul>
+<li><strong>Назначение:</strong> Представляет отдельный параметр правила конфигурирования.</li>
+</ul>
+</li>
+</ul>
+<hr />
+<h2 id="appclientcs-loodsmanapiclient">AppClient.cs (LoodsmanApiClient)</h2>
+<p>Этот файл содержит класс инкапсулирует всю логику взаимодействия с WebAPI сервера приложений ЛОЦМАН:PLM с помощью <strong>HttpClient.</strong></p>
+<ul>
+<li><strong>Класс LoodsmanApiClient : IDisposable</strong><ul>
+<li><strong>Назначение:</strong> Предоставляет асинхронные методы для вызова конкретных конечных точек API.<br />
+    Является абстракцией над транспортным уровнем.</li>
+<li><strong>Приватные поля:</strong><ul>
+<li><strong>private readonly HttpClient _httpClient</strong> - Базовый HTTP-клиент, инициализируемый в конструкторе.
+  Все методы класса используют его для отправки запросов.</li>
+<li><strong>private readonly AppConfiguration _config</strong> - Хранит ссылку на конфигурацию приложения, которая используется для настройки <strong>_httpClient</strong> и для передачи параметров в методы API.</li>
+</ul>
+</li>
+<li><strong>Инициализация _httpClient:</strong><ul>
+<li>В конструкторе класса на основе <strong>_config</strong> выполняется настройка <strong>_httpClient:</strong></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<div class="language-CSharp highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">_httpClient</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">HttpClient</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">         </span><span class="c1">// Собираем базовый адрес из хоста, версии API и стандартного пути &quot;/api/&quot; </span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">         </span><span class="n">BaseAddress</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Uri</span><span class="p">(</span><span class="s">$&quot;{_config.AppServerHost}/api/v{_config.ApiVersion}/&quot;</span><span class="p">),</span><span class="w"> </span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">         </span><span class="c1">// Устанавливаем таймаут из конфигурации Timeout = </span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">         </span><span class="n">TimeSpan</span><span class="p">.</span><span class="n">FromSeconds</span><span class="p">(</span><span class="n">_config</span><span class="p">.</span><span class="n">RequestTimeoutSeconds</span><span class="p">)</span><span class="w"> </span><span class="p">};</span><span class="w"> </span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">         </span><span class="c1">// Добавляем обязательный заголовок с идентификатором сессии для аутентификации </span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">          </span><span class="n">_httpClient</span><span class="p">.</span><span class="n">DefaultRequestHeaders</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="s">&quot;web-loodsman-session&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">_config</span><span class="p">.</span><span class="n">SessionId</span><span class="p">);</span>
+</span></code></pre></div>
+<ul>
+<li>
+<p><strong>Зачем:</strong></p>
+<ul>
+<li><strong>BaseAddress</strong> позволяет использовать относительные пути в методах, что упрощает код.</li>
+<li><strong>Timeout</strong> предотвращает зависание скрипта при проблемах с сетью.</li>
+<li>Заголовок <strong>web-loodsman-session</strong> - это стандартный способ аутентификации для всех запросов к API ЛОЦМАН:PLM.</li>
+</ul>
+</li>
+<li>
+<p><strong>Реализация IDisposable:</strong> Класс реализует интерфейс <strong>IDisposable,</strong> чтобы корректно освобождать ресурсы <strong>HttpClient.<br />
+</strong>Метод <strong>Dispose()</strong> вызывает <strong>_httpClient?.Dispose().</strong></p>
+</li>
+<li>
+<p><strong>В рассматриваемом в этом разделе примере, реализованы дополнительные методы для получения информации, необходимой для построения отчета</strong>  </p>
+<ul>
+<li><strong>GetObjectInfoAsync(int idVersion):</strong> Получает информацию об объекте.<br />
+  Вызывает <strong>GET /ObjectInfo/get-prop-objects.</strong></li>
+<li><strong>GetLinkedObjectsAsync(int idVersion, string linkType):</strong> Получает дочерние объекты по указанному типу связи.<br />
+    Вызывает <strong>GET /ObjectInfo/get-linked-fast.</strong></li>
+<li><strong>GetVersionAttributesAsync(int idVersion):</strong> Получает атрибуты версии.<br />
+    Вызывает <strong>GET /ObjectInfo/get-info-about-version-mode-3.</strong></li>
+<li><strong>GetLinkAttributesAsync(int idLink):</strong> Получает атрибуты связи.<br />
+    Вызывает <strong>GET /ObjectInfo/get-link-attributes-2.</strong></li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><strong>ВНИМАНИЕ</strong>!
+    Выше были перечислены методы, добавленные в класс <strong>LoodsmanApiClient</strong> для реализации скрипта, рассматриваемого в данном разделе
+    Для реализации других скриптов список методов должен быть расширен разработчиком отчетов, по аналогии с реализованными в данном примере.</p>
+</blockquote>
+<hr />
+<h2 id="modelscs">Models.cs</h2>
+<p>Этот файл содержит все объектные модели (<em>DTO - Data Transfer Objec</em>t), используемые для обмена данными между скриптом и Web API сервера приложений ЛОЦМАН:PLM, а также внутренние модели для хранения данных отчёта.</p>
+<p><strong>В рассматриваемом в этом разделе примере, описаны следующие объектные модели, необходимые для построения отчета</strong> </p>
+<ul>
+<li><strong>ObjectInfo</strong><ul>
+<li><strong>Назначение:</strong> Представляет информацию о версии объекта, полученную от сервера.<br />
+    Используется для хранения данных из методов <strong>get-prop-objects</strong> и <strong>get-linked-fast</strong>.</li>
+<li><strong>Ключевые свойства:</strong><ul>
+<li><strong>idLink</strong> (int) - Идентификатор связи.</li>
+<li><strong>idVersion</strong> (int) - Идентификатор версии объекта.</li>
+<li><strong>type</strong> (string) - Тип версии.</li>
+<li><strong>product</strong> (string) - Обозначение версии.</li>
+<li><strong>version</strong> (string) - Номер версии.</li>
+<li><strong>maxCalc</strong> (double) - Максимальное расчётное значение (для атрибутов связи, например, количество).</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>Attributes</strong>  <ul>
+<li><strong>Назначение:</strong> Представляет атрибут версии или связи.<br />
+    Используется для хранения данных из методов <strong>get-info-about-version-mode-3</strong> и <strong>get-link-attributes-2</strong>.</li>
+<li><strong>Ключевые свойства:</strong><ul>
+<li><strong>id</strong> (int) - Идентификатор атрибута.</li>
+<li><strong>name</strong> (string) - Имя атрибута.</li>
+<li><strong>value</strong> (string) - Значение атрибута.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>ReportRow</strong><ul>
+<li><strong>Назначение:</strong> Внутренняя модель, представляющая одну строку в итоговом отчёте.</li>
+<li><strong>Ключевые свойства:</strong><ul>
+<li><strong>IdVersion</strong> (int) - Служебный идентификатор версии (не выводится в отчёт, но используется для рекурсивных вызовов).</li>
+<li><strong>IdLink</strong> (int) - Служебный идентификатор связи (не выводится в отчёт, но используется для рекурсивных вызовов).</li>
+<li><strong>Type</strong> (string) - Тип версии.</li>
+<li><strong>Product</strong> (string) - Обозначение версии.</li>
+<li><strong>Name</strong> (string) - Наименование версии.</li>
+<li><strong>VersionNumber</strong> (string) - Номер версии.</li>
+<li><strong>Quantity</strong> (double) - Суммарное количество.</li>
+<li><strong>Weight</strong> (string) - Суммарная масса (уже округлённая, как строка).</li>
+<li><strong>Position</strong> (string) - Позиция.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<hr />
+<h2 id="programcs">Program.cs</h2>
+<p>Точка входа в приложение. Здесь происходит сборка всех компонентов, запуск процесса генерации отчёта и вывод результата.</p>
+<ul>
+<li><strong>Метод Main (асинхронный)</strong><ul>
+<li><strong>Назначение:</strong> Управляет выполнением скрипта.</li>
+<li><strong>Логика работы:</strong><ul>
+<li><strong>Конфигурация:</strong> Получает объект <strong>AppConfiguration</strong> с помощью статического метода <strong>GetConfiguration,</strong> передавая ему аргументы командной строки (<strong>args</strong>) и данные из стандартного ввода (<strong>Console.In.ReadToEnd()</strong>)<strong>.</strong></li>
+<li><strong>Инициализация API-клиента:</strong> Создаёт экземпляр <strong>LoodsmanApiClient,</strong> передавая ему сконфигурированный объект <strong>config.</strong></li>
+<li><strong>Инициализация сервиса:</strong> Создаёт экземпляр <strong>ReportService,</strong> передавая ему <strong>apiClient</strong> и <strong>config.</strong></li>
+<li><strong>Генерация отчёта:</strong> Выполняет действия по сбору информации. <br />
+  Применительно к примеру, рассматриваемому в этом разделе - вызывает метод <strong>GenerateReportAsync</strong> у <strong>reportService,</strong> передавая первый идентификатор из списка <strong>config.ObjectIds</strong> и значение параметра <strong>"Глубина разузловки",</strong> полученное из <strong>config.</strong></li>
+<li><strong>Вывод результата:</strong> Передаёт полученный список <strong>ReportRow</strong> в статический метод <strong>ReportPrinter.PrintJson,</strong> который выводит его в консоль в формате JSON.</li>
+<li><strong>Обработка ошибок:</strong> Блок <strong>try-catch</strong> перехватывает любые исключения на всех этапах и выводит информацию об ошибке в поток ошибок (<strong>Console.Error</strong>).</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<hr />
+<h2 id="reportservicecs">ReportService.cs</h2>
+<p>Содержит основную бизнес-логику: обход дерева объектов и формирование итогового списка строк отчёта.</p>
+<blockquote>
+<p><strong>ВНИМАНИЕ</strong>!
+Далее будут реализация этого класса будет описана в контексте примера, рассмотренного в этом разделе.
+Реализация логики формирования данных для конкретного отчета реализуется разработчиком отчетов.</p>
+</blockquote>
+<ul>
+<li><strong>Класс ReportService</strong><ul>
+<li><strong>Назначение:</strong> Сервис, который использует <strong>LoodsmanApiClient</strong> для сбора данных и преобразует их в модель <strong>ReportRow.</strong></li>
+<li><strong>Приватные поля:</strong><ul>
+<li><strong>_apiClient:</strong> Для выполнения запросов к API.</li>
+<li><strong>_config:</strong> Для доступа к параметрам пользователя.</li>
+<li><strong>_reportTable:</strong> Временное хранилище (список) для накопления строк отчёта в процессе рекурсивного обхода.</li>
+</ul>
+</li>
+<li><strong>В рассматриваемом в этом разделе примере, класс реализует следующие методы :</strong><ul>
+<li><strong>Task  GenerateReportAsync(int rootIdVersion, int maxDepth):</strong> Главный публичный метод.<ul>
+<li>Получает информацию о корневом объекте.</li>
+<li>Запускает рекурсивный обход <strong>TraverseTreeAsync.</strong></li>
+<li>Запускает обогащение данных <strong>EnrichReportDataAsync.</strong></li>
+<li>Сортирует результат, помещая корневой объект на первую позицию.</li>
+</ul>
+</li>
+<li><strong>TraverseTreeAsync(ObjectInfo currentObject, int currentLevel, int maxDepth):</strong> Рекурсивный приватный метод.  <ul>
+<li>Создаёт <strong>ReportRow</strong> из <strong>currentObject</strong> и добавляет в <strong>_reportTable.</strong></li>
+<li>Проверяет условие выхода (<strong>currentLevel &gt;= maxDepth).</strong></li>
+<li>Получает список дочерних объектов через <strong>_apiClient.GetLinkedObjectsAsync.</strong></li>
+<li>Для каждого дочернего объекта вызывает <strong>TraverseTreeAsync,</strong> увеличивая <strong>currentLevel.</strong></li>
+</ul>
+</li>
+<li><strong>EnrichReportDataAsync:</strong> Приватный метод.<ul>
+<li>Проходит по всем строкам в <strong>_reportTable.</strong></li>
+<li>Для каждой версии объекта получает атрибуты через <strong>_apiClient.GetVersionAttributesAsync,</strong> извлекает "Наименование" и "Массу".</li>
+<li>Для каждой связи получает атрибуты через <strong>_apiClient.GetLinkAttributesAsync,</strong> извлекает "Позицию".</li>
+</ul>
+</li>
+<li><strong>CalculateTotalWeight(string weightStr, double quantity):</strong> Приватный вспомогательный метод.  <ul>
+<li>Парсит строку с массой.</li>
+<li>Вычисляет <strong>totalWeight = weight * quantity.</strong></li>
+<li>Округляет результат до указанного в конфигурации количества знаков (<strong>_config.GetStringParameterByName("Количество знаков после запятой")</strong>) и возвращает как строку.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<hr />
+<h1 id="reportprintercs">ReportPrinter.cs</h1>
+<p>Статический класс-утилита для форматирования и вывода результатов.</p>
+<ul>
+<li><strong>Класс ReportPrinter</strong><ul>
+<li><strong>Назначение:</strong> Предоставляет единый способ для вывода данных в консоль в формате JSON.</li>
+<li><strong>Приватное статическое поле _options:</strong> Содержит предопределённые настройки для <strong>JsonSerializer,</strong> чтобы вывод был отформатирован (с отступами) и корректно обрабатывал русские символы (<strong>UnsafeRelaxedJsonEscaping</strong>).</li>
+<li><strong>Публичный статический метод PrintJson<T>(IEnumerable<T> items):</strong>  <ul>
+<li>Проверяет, что входные данные не <strong>null</strong> и не пусты.</li>
+<li>Сериализует коллекцию в JSON с использованием настроек <strong>_options.</strong></li>
+<li>Выводит полученную JSON-строку в консоль с помощью <strong>Console.WriteLine.</strong></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["toc.integrate", "search.suggest", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
